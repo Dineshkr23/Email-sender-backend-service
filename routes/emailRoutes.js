@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { sendEmail } from "../services/emailService.js";
 import { validateEmailRequest } from "../middleware/validation.js";
 import { cleanupUploadedFiles } from "../utils/fileUtils.js";
+import { validateApiKey } from "../middleware/apiKeyAuth.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -62,6 +63,7 @@ const upload = multer({
 router.post(
   "/send-email",
   upload.array("files", 10), // Handle up to 10 files
+  validateApiKey, // Add API key validation
   validateEmailRequest,
   async (req, res, next) => {
     try {

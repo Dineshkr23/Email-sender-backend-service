@@ -13,11 +13,27 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy for rate limiting (important when behind reverse proxy)
+// Set to true in production when behind a reverse proxy
+app.set("trust proxy", process.env.NODE_ENV === "production" ? true : 1);
+
 // Serve static files
 app.use(express.static(join(__dirname, "public")));
 
 // Security middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // CORS configuration
 app.use(
@@ -26,17 +42,28 @@ app.use(
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    // Additional security for production
+    maxAge: 86400, // 24 hours
   })
 );
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: process.env.RATE_LIMIT_PER_CLIENT || 50, // limit per client
+  keyGenerator: (req) => {
+    // Use API key or origin as client identifier
+    return req.headers["x-api-key"] || req.headers.origin || req.ip;
+  },
   message: {
     success: false,
-    error: "Too many requests from this IP, please try again later.",
+    error: "Too many requests from this client, please try again later.",
   },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Trust proxy for accurate IP detection
+  skipSuccessfulRequests: false,
+  skipFailedRequests: false,
 });
 app.use(limiter);
 
