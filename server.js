@@ -35,18 +35,17 @@ app.use(
   })
 );
 
-// CORS configuration
-// app.use(
-//   cors({
-//     origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
-//     methods: ["GET", "POST", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//     credentials: true,
-//     // Additional security for production
-//     maxAge: 86400, // 24 hours
-//   })
-// );
-app.use(cors());
+// CORS configuration - Allow all origins for multi-tenant service
+app.use(
+  cors({
+    origin: "*", // Allow all domains
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
+    credentials: false, // Disable credentials for wildcard origin
+    // Additional security for production
+    maxAge: 86400, // 24 hours
+  })
+);
 
 // Rate limiting
 const limiter = rateLimit({
