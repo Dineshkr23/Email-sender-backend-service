@@ -36,16 +36,17 @@ app.use(
 );
 
 // CORS configuration
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-    // Additional security for production
-    maxAge: 86400, // 24 hours
-  })
-);
+// app.use(
+//   cors({
+//     origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
+//     methods: ["GET", "POST", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true,
+//     // Additional security for production
+//     maxAge: 86400, // 24 hours
+//   })
+// );
+app.use(cors());
 
 // Rate limiting
 const limiter = rateLimit({
